@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.facebook.react.ReactApplication;
@@ -24,7 +23,8 @@ public class MessagingService extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         Log.d(TAG, "Remote message received");
-        Intent i = new Intent("com.evollu.react.fcm.ReceiveNotification");
+        String action = getPackageName() + ".ReceiveNotification";
+        Intent i = new Intent(action);
         i.putExtra("data", remoteMessage);
         handleBadge(remoteMessage);
         buildLocalNotification(remoteMessage);
@@ -42,12 +42,12 @@ public class MessagingService extends FirebaseMessagingService {
                 ReactContext context = mReactInstanceManager.getCurrentReactContext();
                 // If it's constructed, send a notification
                 if (context != null) {
-                    LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(message);
+                    context.sendOrderedBroadcast(message, null);
                 } else {
                     // Otherwise wait for construction, then send the notification
                     mReactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
                         public void onReactContextInitialized(ReactContext context) {
-                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(message);
+                            context.sendOrderedBroadcast(message, null);
                         }
                     });
                     if (!mReactInstanceManager.hasStartedCreatingInitialContext()) {
